@@ -548,12 +548,14 @@ class Stream:
         return session
 
     def start(self):
+        self.sse = ClosableSSEClient(self.url, session=self.make_session(), build_headers=self.build_headers)
         self.thread = threading.Thread(target=self.start_stream)
         self.thread.start()
         return self
 
     def start_stream(self):
-        self.sse = ClosableSSEClient(self.url, session=self.make_session(), build_headers=self.build_headers)
+        if self.sse is None:
+            self.sse = ClosableSSEClient(self.url, session=self.make_session(), build_headers=self.build_headers)
         for msg in self.sse:
             if msg:
                 msg_data = json.loads(msg.data)
